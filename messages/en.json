@@ -1,0 +1,21 @@
+{
+  "Meta": {
+    "title": "my-skills",
+    "description": "Built with ai-forge"
+  },
+  "Home": {
+    "title": "my-skills",
+    "subtitle": "Built with ai-forge",
+    "apiHealth": "API Health",
+    "storybook": "Storybook"
+  },
+  "ThemeToggle": {
+    "label": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "LocaleSwitcher": {
+    "label": "Switch language"
+  }
+}
