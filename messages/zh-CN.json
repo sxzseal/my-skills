@@ -1,7 +1,7 @@
 {
   "Meta": {
-    "title": "my-skills",
-    "description": "由 ai-forge 构建"
+    "title": "My Skills",
+    "description": "个人 Claude Code Skill 云端库"
   },
   "Home": {
     "title": "my-skills",
@@ -17,5 +17,156 @@
   },
   "LocaleSwitcher": {
     "label": "切换语言"
+  },
+  "Errors": {
+    "skillForm": {
+      "nameRequired": "name 不能为空",
+      "namePattern": "仅允许小写字母、数字、连字符，且以字母开头",
+      "displayNameRequired": "displayName 不能为空",
+      "descriptionRequired": "description 不能为空",
+      "descriptionMax": "最多 200 字",
+      "versionPattern": "需符合 x.y.z 格式"
+    },
+    "skillApi": {
+      "notFound": "找不到指定 skill",
+      "conflict": "SHA 冲突：远端已被更新，请刷新页面后重试",
+      "invalidBody": "请求体缺少必填字段或格式不合法",
+      "unauthorized": "未授权：请通过 Cloudflare Access 登录后重试"
+    }
+  },
+  "MySkills": {
+    "brand": "My Skills",
+    "tagline": "个人 Claude Code Skill 云端库",
+    "nav": {
+      "list": "全部技能",
+      "upload": "上传",
+      "docs": "帮助"
+    },
+    "list": {
+      "title": "全部技能",
+      "subtitle": "点击卡片查看详情，或选择右上角上传新技能",
+      "searchPlaceholder": "按名称、描述搜索…",
+      "tagFilterAll": "全部标签",
+      "resultCount": "共 {count} 个技能",
+      "downloadAll": "打包下载全部",
+      "uploadNew": "上传技能",
+      "empty": "还没有任何 skill，去上传第一个吧",
+      "emptyCta": "上传第一个 Skill",
+      "loading": "加载中…",
+      "errorTitle": "加载失败",
+      "errorDetail": "无法从服务器获取 skill 列表",
+      "errorRetry": "重试",
+      "versionLabel": "v{version}",
+      "updatedAt": "更新于 {date}"
+    },
+    "detail": {
+      "backToList": "返回列表",
+      "download": "下载 .md",
+      "copy": "复制内容",
+      "copySuccess": "内容已复制到剪贴板",
+      "copyFailed": "复制失败",
+      "delete": "删除",
+      "deleteSuccess": "已删除 {name}",
+      "deleteFailed": "删除失败",
+      "edit": "编辑",
+      "deleteConfirmTitle": "确认删除？",
+      "deleteConfirmDesc": "删除后将从 GitHub 仓库移除该文件，触发一次新的 Pages 构建。此操作可从 git 历史恢复。",
+      "deleteConfirmYes": "确认删除",
+      "deleteConfirmNo": "取消",
+      "sidebar": {
+        "meta": "元数据",
+        "name": "名称",
+        "version": "版本",
+        "size": "文件大小",
+        "createdAt": "创建时间",
+        "updatedAt": "更新时间",
+        "tags": "标签",
+        "sha": "Git SHA",
+        "sourceLink": "在 GitHub 查看源文件"
+      },
+      "toc": "目录",
+      "frontmatter": "Frontmatter",
+      "content": "正文",
+      "loading": "加载中…",
+      "notFoundTitle": "找不到该 skill",
+      "notFoundDesc": "可能已被删除或名称错误"
+    },
+    "upload": {
+      "title": "上传新技能",
+      "subtitle": "支持 .md 单文件或 .zip 包（浏览器端解压）",
+      "updateTitle": "更新技能：{name}",
+      "updateSubtitle": "修改内容或元数据后重新提交，name 不可修改",
+      "updateBadge": "更新模式",
+      "step1": "选择文件",
+      "step1Update": "替换内容（可选）",
+      "step2": "填写元数据",
+      "step3": "提交",
+      "step3Update": "提交更新",
+      "dropzone": {
+        "idleLine1": "拖拽 .md 或 .zip 到这里",
+        "idleLine2": "或点击选择文件",
+        "supportedFormat": "支持格式：.md、.zip（≤ 10 MB）",
+        "browseButton": "浏览文件",
+        "activeLine": "松开鼠标以上传",
+        "fileNameLabel": "已选择",
+        "removeFile": "移除",
+        "invalidType": "文件格式不支持，仅支持 .md 和 .zip"
+      },
+      "token": {
+        "title": "GitHub Token",
+        "desc": "首次访问需要输入 fine-grained Personal Access Token（仅授权 my-skills 仓库的 Contents Read & Write）",
+        "placeholder": "ghp_...",
+        "validate": "校验并保存",
+        "helper": "Token 只存在你的浏览器 localStorage，整站受 Cloudflare Access 保护",
+        "howTo": "如何生成 Token？",
+        "changeToken": "更换 Token",
+        "tokenValid": "Token 已验证",
+        "tokenInvalid": "Token 无效或权限不足"
+      },
+      "form": {
+        "name": "标识 (name)",
+        "namePlaceholder": "英文小写，用 - 连接，如 daily-report",
+        "nameHint": "会作为 GitHub 仓库中的文件名 name.md",
+        "nameLocked": "更新模式下 name 不可修改",
+        "displayName": "展示名称 (displayName)",
+        "displayNamePlaceholder": "如：日报生成器",
+        "description": "简介",
+        "descriptionPlaceholder": "一句话说明这个 skill 的用途",
+        "version": "版本号",
+        "versionPlaceholder": "0.1.0",
+        "versionSuggest": "建议：{suggested}",
+        "tags": "标签（逗号分隔）",
+        "tagsPlaceholder": "productivity, reporting",
+        "preview": "内容预览",
+        "previewEmpty": "上传或选择文件后，这里会显示 Markdown 预览",
+        "previewHint": "上传 .md 文件后自动填充 frontmatter 到左侧表单",
+        "previewClear": "清空预览",
+        "submit": "提交到 GitHub",
+        "submitUpdate": "提交更新",
+        "submitting": "提交中…",
+        "submittingHint": "调用 GitHub API 中，请稍候…",
+        "required": "*",
+        "diffTitle": "变更预览",
+        "diffFrom": "当前",
+        "diffTo": "更新为"
+      },
+      "result": {
+        "successTitle": "✅ 已提交到 GitHub",
+        "successBuildingLine": "Cloudflare Pages 正在构建，预计 30 秒后生效",
+        "successCommit": "Commit: {sha}",
+        "viewList": "回到列表",
+        "uploadAnother": "继续上传",
+        "buildStatus": {
+          "queued": "构建排队中…",
+          "building": "构建中…",
+          "success": "构建完成",
+          "failed": "构建失败"
+        },
+        "errorTitle": "❌ 上传失败",
+        "errorConflict": "GitHub API 返回 409：SHA 冲突 —— 请刷新页面重试",
+        "errorGeneric": "上传失败：{message}",
+        "errorRetry": "重试"
+      }
+    }
   }
 }

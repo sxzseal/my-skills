@@ -1,7 +1,7 @@
 {
   "Meta": {
-    "title": "my-skills",
-    "description": "Built with ai-forge"
+    "title": "My Skills",
+    "description": "Personal Claude Code skill library in the cloud"
   },
   "Home": {
     "title": "my-skills",
@@ -17,5 +17,156 @@
   },
   "LocaleSwitcher": {
     "label": "Switch language"
+  },
+  "Errors": {
+    "skillForm": {
+      "nameRequired": "Name is required",
+      "namePattern": "Lowercase letters, digits and hyphens only; must start with a letter",
+      "displayNameRequired": "Display name is required",
+      "descriptionRequired": "Description is required",
+      "descriptionMax": "Max 200 characters",
+      "versionPattern": "Must match x.y.z"
+    },
+    "skillApi": {
+      "notFound": "Skill not found",
+      "conflict": "SHA conflict: the remote was updated. Refresh and retry.",
+      "invalidBody": "Request body is missing required fields or malformed",
+      "unauthorized": "Unauthorized: please sign in via Cloudflare Access and retry"
+    }
+  },
+  "MySkills": {
+    "brand": "My Skills",
+    "tagline": "Personal Claude Code skill library in the cloud",
+    "nav": {
+      "list": "All Skills",
+      "upload": "Upload",
+      "docs": "Help"
+    },
+    "list": {
+      "title": "All Skills",
+      "subtitle": "Click a card to view details, or upload a new skill from the top right",
+      "searchPlaceholder": "Search by name or description…",
+      "tagFilterAll": "All tags",
+      "resultCount": "{count} skills",
+      "downloadAll": "Download All",
+      "uploadNew": "Upload Skill",
+      "empty": "No skills yet. Upload your first one.",
+      "emptyCta": "Upload First Skill",
+      "loading": "Loading…",
+      "errorTitle": "Failed to load",
+      "errorDetail": "Could not fetch the skill list from the server",
+      "errorRetry": "Retry",
+      "versionLabel": "v{version}",
+      "updatedAt": "Updated {date}"
+    },
+    "detail": {
+      "backToList": "Back",
+      "download": "Download .md",
+      "copy": "Copy",
+      "copySuccess": "Content copied to clipboard",
+      "copyFailed": "Copy failed",
+      "delete": "Delete",
+      "deleteSuccess": "{name} deleted",
+      "deleteFailed": "Delete failed",
+      "edit": "Edit",
+      "deleteConfirmTitle": "Delete this skill?",
+      "deleteConfirmDesc": "This removes the file from the GitHub repo and triggers a new Pages build. You can recover it from git history.",
+      "deleteConfirmYes": "Delete",
+      "deleteConfirmNo": "Cancel",
+      "sidebar": {
+        "meta": "Metadata",
+        "name": "Name",
+        "version": "Version",
+        "size": "File Size",
+        "createdAt": "Created",
+        "updatedAt": "Updated",
+        "tags": "Tags",
+        "sha": "Git SHA",
+        "sourceLink": "View source on GitHub"
+      },
+      "toc": "Table of Contents",
+      "frontmatter": "Frontmatter",
+      "content": "Content",
+      "loading": "Loading…",
+      "notFoundTitle": "Skill not found",
+      "notFoundDesc": "It may have been deleted or the name is incorrect"
+    },
+    "upload": {
+      "title": "Upload New Skill",
+      "subtitle": "Supports single .md file or .zip archive (unzipped in-browser)",
+      "updateTitle": "Update Skill: {name}",
+      "updateSubtitle": "Modify content or metadata and resubmit. Name is immutable.",
+      "updateBadge": "Update Mode",
+      "step1": "Select File",
+      "step1Update": "Replace Content (optional)",
+      "step2": "Fill Metadata",
+      "step3": "Submit",
+      "step3Update": "Submit Update",
+      "dropzone": {
+        "idleLine1": "Drag & drop .md or .zip here",
+        "idleLine2": "or click to browse",
+        "supportedFormat": "Supported: .md, .zip (≤ 10 MB)",
+        "browseButton": "Browse Files",
+        "activeLine": "Release to upload",
+        "fileNameLabel": "Selected",
+        "removeFile": "Remove",
+        "invalidType": "Unsupported file type. Only .md and .zip are allowed."
+      },
+      "token": {
+        "title": "GitHub Token",
+        "desc": "First-time visitors need a fine-grained Personal Access Token (Contents: Read & Write on my-skills repo only).",
+        "placeholder": "ghp_...",
+        "validate": "Validate & Save",
+        "helper": "The token is stored in your browser's localStorage. The site is protected by Cloudflare Access.",
+        "howTo": "How to generate a token?",
+        "changeToken": "Change Token",
+        "tokenValid": "Token verified",
+        "tokenInvalid": "Invalid token or insufficient permissions"
+      },
+      "form": {
+        "name": "Identifier (name)",
+        "namePlaceholder": "lowercase-kebab-case, e.g. daily-report",
+        "nameHint": "Used as the filename name.md in the GitHub repo",
+        "nameLocked": "Name is immutable in update mode",
+        "displayName": "Display Name",
+        "displayNamePlaceholder": "e.g. Daily Report Generator",
+        "description": "Description",
+        "descriptionPlaceholder": "One-liner about what this skill does",
+        "version": "Version",
+        "versionPlaceholder": "0.1.0",
+        "versionSuggest": "Suggested: {suggested}",
+        "tags": "Tags (comma-separated)",
+        "tagsPlaceholder": "productivity, reporting",
+        "preview": "Content Preview",
+        "previewEmpty": "Markdown preview will appear here after you select a file",
+        "previewHint": "Frontmatter is auto-filled into the form after you upload a .md file",
+        "previewClear": "Clear preview",
+        "submit": "Submit to GitHub",
+        "submitUpdate": "Submit Update",
+        "submitting": "Submitting…",
+        "submittingHint": "Calling GitHub API, please wait…",
+        "required": "*",
+        "diffTitle": "Change Preview",
+        "diffFrom": "Current",
+        "diffTo": "Update to"
+      },
+      "result": {
+        "successTitle": "✅ Submitted to GitHub",
+        "successBuildingLine": "Cloudflare Pages is building; live in ~30 seconds",
+        "successCommit": "Commit: {sha}",
+        "viewList": "Back to List",
+        "uploadAnother": "Upload Another",
+        "buildStatus": {
+          "queued": "Queued…",
+          "building": "Building…",
+          "success": "Build succeeded",
+          "failed": "Build failed"
+        },
+        "errorTitle": "❌ Upload failed",
+        "errorConflict": "GitHub returned 409: SHA conflict — refresh and retry.",
+        "errorGeneric": "Upload failed: {message}",
+        "errorRetry": "Retry"
+      }
+    }
   }
 }

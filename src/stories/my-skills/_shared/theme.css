@@ -1,0 +1,143 @@
+/* My Skills 项目主题覆写
+ *
+ * 只覆写项目特有的 token，其余继承 src/app/globals.css。
+ * 品牌色：Cloudflare 橙 #F38020 → oklch(0.72 0.17 50)
+ */
+
+.theme-my-skills {
+  --primary: oklch(0.72 0.17 50);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.72 0.17 50);
+
+  --accent: oklch(0.96 0.02 55);
+  --accent-foreground: oklch(0.35 0.09 45);
+
+  --radius: 0.75rem;
+}
+
+.theme-my-skills.dark {
+  --primary: oklch(0.76 0.16 52);
+  --primary-foreground: oklch(0.18 0.02 45);
+  --ring: oklch(0.76 0.16 52);
+
+  --accent: oklch(0.28 0.05 50);
+  --accent-foreground: oklch(0.94 0.02 55);
+}
+
+/* Markdown 正文样式 —— 用主题 token，不硬编码颜色 */
+.cf-md {
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.cf-md h1,
+.cf-md h2,
+.cf-md h3,
+.cf-md h4 {
+  font-weight: 600;
+  color: var(--foreground);
+  scroll-margin-top: 5rem;
+}
+
+.cf-md h1 {
+  font-size: 1.75rem;
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cf-md h2 {
+  font-size: 1.375rem;
+  margin: 2rem 0 0.75rem;
+}
+
+.cf-md h3 {
+  font-size: 1.125rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.cf-md p {
+  margin: 0.75rem 0;
+}
+
+.cf-md ul,
+.cf-md ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.cf-md li {
+  margin: 0.25rem 0;
+}
+
+.cf-md li::marker {
+  color: var(--muted-foreground);
+}
+
+.cf-md a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cf-md a:hover {
+  opacity: 0.8;
+}
+
+.cf-md code {
+  font-family:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875em;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.cf-md pre {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.cf-md pre code {
+  background: transparent;
+  padding: 0;
+  font-size: 0.875em;
+}
+
+.cf-md blockquote {
+  border-left: 3px solid var(--primary);
+  padding: 0.25rem 0 0.25rem 1rem;
+  margin: 1rem 0;
+  color: var(--muted-foreground);
+}
+
+.cf-md table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9em;
+}
+
+.cf-md th,
+.cf-md td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.cf-md th {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+.cf-md hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
