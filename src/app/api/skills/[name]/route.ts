@@ -47,7 +47,16 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   if (!nameRegex.test(name) || name.length > 64) {
     return notFoundResponse(request)
   }
-  const result = await deleteSkill(name)
-  if (!result) return notFoundResponse(request)
-  return ok(result)
+
+  try {
+    const result = await deleteSkill(name)
+    if (!result) return notFoundResponse(request)
+    return ok(result)
+  } catch (error: unknown) {
+    console.error(`[DELETE /api/skills/${name}] unexpected error:`, error)
+    const locale = resolveLocale(request)
+    const t = await getTranslations({ locale, namespace: 'Errors.skillApi' })
+    const message = error instanceof Error ? error.message : 'unknown error'
+    return err(500, t('serverError', { message }))
+  }
 }

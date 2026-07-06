@@ -154,7 +154,7 @@ function TokenPanel({
 function Dropzone({
   file,
   onFileChange,
-  markdownPreview,
+  markdownPreview: _markdownPreview,
 }: {
   file: File | null
   onFileChange: (f: File | null) => void
@@ -170,7 +170,6 @@ function Dropzone({
       const f = e.dataTransfer.files[0]
       if (!f) return
       if (!f.name.endsWith('.md') && !f.name.endsWith('.zip')) {
-        // eslint-disable-next-line no-console
         console.warn('invalid type')
         return
       }
@@ -358,7 +357,6 @@ function SkillUploadPage({
 
   const onSubmit = (values: SkillFormValues) => {
     setUploadState('submitting')
-    // eslint-disable-next-line no-console
     console.log('submit', { mode, values, file: file?.name, sha: existing?.sha })
     setTimeout(() => setUploadState('success'), 800)
   }

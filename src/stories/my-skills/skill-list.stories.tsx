@@ -113,7 +113,6 @@ function SkillListPage({
   }, [initialSkills, query, selectedTag])
 
   const handleOpen = (name: string) => {
-    // eslint-disable-next-line no-console
     console.log('open skill:', name)
   }
 

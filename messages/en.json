@@ -31,7 +31,9 @@
       "notFound": "Skill not found",
       "conflict": "SHA conflict: the remote was updated. Refresh and retry.",
       "invalidBody": "Request body is missing required fields or malformed",
-      "unauthorized": "Unauthorized: please sign in via Cloudflare Access and retry"
+      "unauthorized": "Unauthorized: please sign in via Cloudflare Access and retry",
+      "serverError": "Server error: {message}",
+      "nonJsonResponse": "Server returned a non-JSON response (HTTP {status})"
     }
   },
   "MySkills": {

@@ -2,8 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
-import { Cloud, LayoutGrid, Upload, HelpCircle, Download } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Cloud, Upload, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/navigation'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -16,12 +15,7 @@ interface AppShellProps {
   activeNav?: NavKey
 }
 
-const NAV_ITEMS: Array<{ key: NavKey; icon: typeof LayoutGrid; href: string }> = [
-  { key: 'list', icon: LayoutGrid, href: '/' },
-  { key: 'docs', icon: HelpCircle, href: '/help' },
-]
-
-export function AppShell({ children, activeNav = 'list' }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const t = useTranslations('MySkills')
 
   return (
@@ -39,28 +33,6 @@ export function AppShell({ children, activeNav = 'list' }: AppShellProps) {
               </div>
             </div>
           </Link>
-
-          <nav className="ml-6 flex items-center gap-1">
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon
-              const isActive = item.key === activeNav
-              return (
-                <Link
-                  key={item.key}
-                  href={item.href}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-accent text-accent-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {t(`nav.${item.key}`)}
-                </Link>
-              )
-            })}
-          </nav>
 
           <div className="ml-auto flex items-center gap-2">
             <Button variant="outline" size="sm">

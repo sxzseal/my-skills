@@ -2,8 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
-import { Cloud, LayoutGrid, Upload, HelpCircle, Download } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Cloud, Upload, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface AppShellProps {
@@ -12,13 +11,8 @@ interface AppShellProps {
   onNavigate?: (target: 'list' | 'upload' | 'docs') => void
 }
 
-export function AppShell({ children, activeNav = 'list', onNavigate }: AppShellProps) {
+export function AppShell({ children, onNavigate }: AppShellProps) {
   const t = useTranslations('MySkills')
-
-  const navItems = [
-    { key: 'list' as const, label: t('nav.list'), icon: LayoutGrid },
-    { key: 'docs' as const, label: t('nav.docs'), icon: HelpCircle },
-  ]
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
@@ -37,29 +31,6 @@ export function AppShell({ children, activeNav = 'list', onNavigate }: AppShellP
               </div>
             </div>
           </div>
-
-          <nav className="ml-6 flex items-center gap-1">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              const isActive = item.key === activeNav
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => onNavigate?.(item.key)}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-accent text-accent-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </button>
-              )
-            })}
-          </nav>
 
           <div className="ml-auto flex items-center gap-2">
             <Button variant="outline" size="sm">

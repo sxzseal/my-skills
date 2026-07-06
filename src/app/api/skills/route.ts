@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
       return err(409, t('conflict'))
     }
     console.error('[POST /api/skills] unexpected error:', error)
-    return err(500, t('invalidBody'))
+    const message = error instanceof Error ? error.message : 'unknown error'
+    return err(500, t('serverError', { message }))
   }
 }

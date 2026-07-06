@@ -31,7 +31,9 @@
       "notFound": "找不到指定 skill",
       "conflict": "SHA 冲突：远端已被更新，请刷新页面后重试",
       "invalidBody": "请求体缺少必填字段或格式不合法",
-      "unauthorized": "未授权：请通过 Cloudflare Access 登录后重试"
+      "unauthorized": "未授权：请通过 Cloudflare Access 登录后重试",
+      "serverError": "服务器错误：{message}",
+      "nonJsonResponse": "服务器返回了非 JSON 响应（HTTP {status}）"
     }
   },
   "MySkills": {

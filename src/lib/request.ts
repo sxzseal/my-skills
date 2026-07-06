@@ -73,7 +73,29 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     return undefined as T
   }
 
-  const parsed = (await response.json()) as ApiResponse<T>
+  const contentType = response.headers.get('content-type') ?? ''
+  const rawText = await response.text()
+
+  if (!contentType.includes('application/json') || rawText.length === 0) {
+    const snippet = rawText.trim().slice(0, 200)
+    const detail = snippet ? `: ${snippet}` : ''
+    throw new RequestError(
+      response.status,
+      `Server returned a non-JSON response (HTTP ${response.status})${detail}`,
+      response.status,
+    )
+  }
+
+  let parsed: ApiResponse<T>
+  try {
+    parsed = JSON.parse(rawText) as ApiResponse<T>
+  } catch {
+    throw new RequestError(
+      response.status,
+      `Malformed JSON response (HTTP ${response.status})`,
+      response.status,
+    )
+  }
   if (parsed.status_code !== 0) {
     throw new RequestError(parsed.status_code, parsed.message ?? 'Request failed', response.status)
   }

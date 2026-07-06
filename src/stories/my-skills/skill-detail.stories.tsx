@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useTranslations } from 'next-intl'
@@ -162,6 +162,10 @@ function TocSidebar({ headings }: { headings: HeadingItem[] }) {
 
 function SkillDetailPage({ skill }: { skill: SkillDetail | null }) {
   const t = useTranslations('MySkills.detail')
+  const headings = useMemo(
+    () => (skill ? extractHeadings(skill.content) : []),
+    [skill],
+  )
 
   if (!skill) {
     return (
@@ -178,8 +182,6 @@ function SkillDetailPage({ skill }: { skill: SkillDetail | null }) {
       </div>
     )
   }
-
-  const headings = useMemo(() => extractHeadings(skill.content), [skill.content])
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">
