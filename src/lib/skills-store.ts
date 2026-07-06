@@ -5,7 +5,13 @@
  * bundled into the Vercel deployment. Writes go through the GitHub Contents
  * API using a single admin token; each mutation becomes a commit, which
  * triggers a Vercel rebuild automatically.
+ *
+ * `listSummaries` is memoized with React.cache so multiple callers within the
+ * same request only pay the FS scan once. TODO: add a cross-request cache
+ * keyed by a deploy id — writes here trigger a new Vercel build, so within a
+ * single deployment the skill set is immutable and safe to cache module-wide.
  */
+import { cache } from 'react'
 import matter from 'gray-matter'
 import { z } from 'zod'
 import type {
@@ -29,7 +35,9 @@ import {
 export type { SkillSummary, SkillDetail } from '@/features/skills/queries'
 export type BuildStatus = BuildStatusResponse
 
-const frontmatterSchema = z.object({
+const OCTOKIT_TIMEOUT_MS = 10_000
+
+export const frontmatterSchema = z.object({
   name: z.string().min(1),
   displayName: z.string().min(1),
   description: z.string().min(1),
@@ -67,14 +75,15 @@ async function parseSkill(name: string): Promise<ParsedSkill | null> {
   const file = await readSkillFile(name)
   if (!file) return null
   const parsed = matter(file.raw)
+  const raw = parsed.data as Record<string, unknown>
   const dataInput = {
     ...parsed.data,
-    createdAt: coerceDate((parsed.data as Record<string, unknown>).createdAt),
-    updatedAt: coerceDate((parsed.data as Record<string, unknown>).updatedAt),
+    createdAt: coerceDate(raw.createdAt),
+    updatedAt: coerceDate(raw.updatedAt),
   }
   const result = frontmatterSchema.safeParse(dataInput)
   if (!result.success) {
-    console.warn(
+    console.error(
       `[skills-store] skipping ${name}: invalid frontmatter — ${result.error.issues
         .map((i) => `${i.path.join('.')}: ${i.message}`)
         .join('; ')}`,
@@ -112,17 +121,45 @@ function toDetail(p: ParsedSkill): SkillDetail {
   }
 }
 
-export async function listSummaries(): Promise<SkillSummary[]> {
+export const listSummaries = cache(async (): Promise<SkillSummary[]> => {
   const dirs = await listSkillDirs()
   const parsed = await Promise.all(dirs.map((d) => parseSkill(d)))
   return parsed.filter((p): p is ParsedSkill => p !== null).map(toSummary)
+})
+
+export function deriveTags(list: readonly SkillSummary[]): string[] {
+  return Array.from(new Set(list.flatMap((s) => s.tags))).sort()
 }
 
+export interface FilterParams {
+  q?: string
+  tag?: string
+}
+
+export function filterSummaries(
+  list: readonly SkillSummary[],
+  params: FilterParams,
+): SkillSummary[] {
+  const q = (params.q ?? '').toLowerCase().trim()
+  const tag = (params.tag ?? '').trim()
+  let out = list as SkillSummary[]
+  if (q) {
+    out = out.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.displayName.toLowerCase().includes(q) ||
+        s.description.toLowerCase().includes(q),
+    )
+  }
+  if (tag) {
+    out = out.filter((s) => s.tags.includes(tag))
+  }
+  return out
+}
+
+/** @deprecated use `deriveTags(await listSummaries())` — retained for callers. */
 export async function listTags(): Promise<string[]> {
-  const summaries = await listSummaries()
-  const set = new Set<string>()
-  for (const s of summaries) for (const t of s.tags) set.add(t)
-  return Array.from(set).sort()
+  return deriveTags(await listSummaries())
 }
 
 export async function getDetail(name: string): Promise<SkillDetail | null> {
@@ -180,8 +217,14 @@ export async function upsertSkill(
   const existing = await parseSkill(input.name)
   const isUpdate = existing !== null
 
-  if (isUpdate && existing && input.sha && input.sha !== existing.sha) {
-    throw new ShaConflictError()
+  if (existing) {
+    // Name is taken. Without a sha the client thinks it is creating a new
+    // record, so silently overwriting user A's skill with user B's content
+    // would be data loss. Require the client to opt into update mode with a
+    // matching sha.
+    if (!input.sha || input.sha !== existing.sha) {
+      throw new ShaConflictError()
+    }
   }
 
   const createdAt = existing?.frontmatter.createdAt ?? nowIso
@@ -201,6 +244,7 @@ export async function upsertSkill(
       message: `${isUpdate ? 'Update' : 'Add'} skill: ${input.name}`,
       content: contentB64,
       sha: existing?.sha,
+      request: { signal: AbortSignal.timeout(OCTOKIT_TIMEOUT_MS) },
     })
     commitSha = res.data.commit.sha ?? ''
   } catch (err: unknown) {
@@ -247,6 +291,7 @@ export async function deleteSkill(
       path: skillRepoPath(name),
       message: `Delete skill: ${name}`,
       sha: existing.sha,
+      request: { signal: AbortSignal.timeout(OCTOKIT_TIMEOUT_MS) },
     })
     return { commitSha: res.data.commit.sha ?? '' }
   } catch (err: unknown) {
@@ -255,19 +300,19 @@ export async function deleteSkill(
   }
 }
 
-export function getBuildStatus(buildId: string | null): BuildStatus {
-  if (buildId === 'build-success') {
-    return {
-      status: 'success',
-      startedAt: '2026-07-02T10:31:00Z',
-      completedAt: '2026-07-02T10:31:47Z',
-      url: 'https://my-skills.pages.dev',
-      buildId,
-    }
-  }
+/**
+ * STUB: Vercel deploy hooks are not wired up. Never trust the incoming
+ * `buildId` — mapping an attacker-controllable string to a "success" state
+ * with a URL is a phishing vector. Always report `building` until real
+ * deploy status is available.
+ */
+export function getBuildStatusStub(buildId: string | null): BuildStatus {
   return {
     status: 'building',
     startedAt: new Date(0).toISOString(),
     buildId: buildId ?? 'build-unknown',
   }
 }
+
+/** @deprecated legacy name — use `getBuildStatusStub`. */
+export const getBuildStatus = getBuildStatusStub

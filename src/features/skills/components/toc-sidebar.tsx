@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { slugify } from '../lib/slug'
 
 export interface HeadingItem {
   id: string
@@ -23,11 +24,7 @@ export function extractHeadings(md: string): HeadingItem[] {
     if (!m) continue
     const level = m[1].length
     const text = m[2].trim()
-    const id = text
-      .toLowerCase()
-      .replace(/[^\p{L}\p{N}]+/gu, '-')
-      .replace(/^-|-$/g, '')
-    items.push({ id, text, level })
+    items.push({ id: slugify(text), text, level })
   }
   return items
 }

@@ -1,30 +1,26 @@
 import type { NextRequest } from 'next/server'
 import { getTranslations } from 'next-intl/server'
 import { ok, err } from '@/lib/api-response'
-import { getDetail, deleteSkill } from '@/lib/skills-store'
-import { routing } from '@/i18n/routing'
+import { getDetail, deleteSkill, ShaConflictError } from '@/lib/skills-store'
 import { nameRegex } from '@/features/skills/schemas'
-import { requireAccessAuth } from '@/lib/access-auth'
+import { resolveLocaleFromRequest } from '@/lib/locale'
+import { requireAccessAuth, getAccessIdentity } from '@/lib/access-auth'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 interface RouteContext {
   params: Promise<{ name: string }>
 }
 
-function resolveLocale(request: NextRequest): string {
-  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value
-  if (cookieLocale && (routing.locales as readonly string[]).includes(cookieLocale)) {
-    return cookieLocale
-  }
-  const accept = request.headers.get('accept-language') ?? ''
-  const preferred = accept.split(',')[0]?.trim().toLowerCase() ?? ''
-  const match = (routing.locales as readonly string[]).find(
-    (l) => preferred === l.toLowerCase() || preferred.startsWith(l.toLowerCase() + '-'),
-  )
-  return match ?? routing.defaultLocale
+function clientKey(request: NextRequest): string {
+  const identity = getAccessIdentity(request)
+  if (identity?.email) return `email:${identity.email}`
+  const fwd = request.headers.get('x-forwarded-for') ?? ''
+  const ip = fwd.split(',')[0]?.trim() ?? ''
+  return ip ? `ip:${ip}` : 'ip:unknown'
 }
 
 async function notFoundResponse(request: NextRequest) {
-  const locale = resolveLocale(request)
+  const locale = resolveLocaleFromRequest(request)
   const t = await getTranslations({ locale, namespace: 'Errors.skillApi' })
   return err(404, t('notFound'))
 }
@@ -43,6 +39,13 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   const authFailure = await requireAccessAuth(request)
   if (authFailure) return authFailure
 
+  const locale = resolveLocaleFromRequest(request)
+  const t = await getTranslations({ locale, namespace: 'Errors.skillApi' })
+
+  if (!checkRateLimit(clientKey(request))) {
+    return err(429, t('rateLimited'))
+  }
+
   const { name } = await context.params
   if (!nameRegex.test(name) || name.length > 64) {
     return notFoundResponse(request)
@@ -53,10 +56,20 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     if (!result) return notFoundResponse(request)
     return ok(result)
   } catch (error: unknown) {
+    if (error instanceof ShaConflictError) {
+      return err(409, t('conflict'))
+    }
+    if (isAbortError(error)) {
+      console.error(`[DELETE /api/skills/${name}] upstream timeout:`, error)
+      return err(504, t('timeoutError'))
+    }
     console.error(`[DELETE /api/skills/${name}] unexpected error:`, error)
-    const locale = resolveLocale(request)
-    const t = await getTranslations({ locale, namespace: 'Errors.skillApi' })
-    const message = error instanceof Error ? error.message : 'unknown error'
-    return err(500, t('serverError', { message }))
+    return err(500, t('serverError'))
   }
+}
+
+function isAbortError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const name = (err as { name?: unknown }).name
+  return name === 'AbortError' || name === 'TimeoutError'
 }

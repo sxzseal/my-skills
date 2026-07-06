@@ -1,21 +1,16 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Home Page', () => {
-  test('renders project heading and links (default locale)', async ({
-    page,
-  }) => {
+  test('renders skill list heading', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.locator('h1')).toBeVisible()
-    await expect(page.getByRole('link').first()).toBeVisible()
+    await expect(page.locator('h1').first()).toBeVisible()
   })
 
   test('switches locale via URL prefix', async ({ page }) => {
     await page.goto('/en')
 
-    await expect(page.locator('h1')).toBeVisible()
-    await expect(page.getByRole('link', { name: /api health/i })).toBeVisible()
-    await expect(page.getByRole('link', { name: /storybook/i })).toBeVisible()
+    await expect(page.locator('h1').first()).toBeVisible()
   })
 
   test('theme toggle button is present', async ({ page }) => {
@@ -37,6 +32,7 @@ test.describe('Home Page', () => {
     expect(response.ok()).toBeTruthy()
 
     const body = await response.json()
-    expect(body.status).toBe('ok')
+    expect(body.status_code).toBe(0)
+    expect(body.data.status).toBe('ok')
   })
 })

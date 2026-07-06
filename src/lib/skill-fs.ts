@@ -2,11 +2,21 @@ import { createHash } from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
-export const SKILLS_DIR = path.join(process.cwd(), 'skills')
 export const SKILL_FILENAME = 'SKILL.md'
 
+/**
+ * Directory that holds `<name>/SKILL.md` folders. Resolved lazily via
+ * `process.cwd()` so tests can `chdir` before invoking readers.
+ */
+export function getSkillsDir(): string {
+  return path.join(process.cwd(), 'skills')
+}
+
+/** @deprecated use `getSkillsDir()` — snapshot at module load broke test setup. */
+export const SKILLS_DIR = getSkillsDir()
+
 export function skillFilePath(name: string): string {
-  return path.join(SKILLS_DIR, name, SKILL_FILENAME)
+  return path.join(getSkillsDir(), name, SKILL_FILENAME)
 }
 
 export function skillRepoPath(name: string): string {
@@ -24,7 +34,7 @@ export function computeBlobSha(content: string | Buffer): string {
 export async function listSkillDirs(): Promise<string[]> {
   let entries: string[]
   try {
-    const raw = await fs.readdir(SKILLS_DIR, { withFileTypes: true })
+    const raw = await fs.readdir(getSkillsDir(), { withFileTypes: true })
     entries = raw.filter((e) => e.isDirectory()).map((e) => e.name)
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return []

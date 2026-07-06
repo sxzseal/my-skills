@@ -32,7 +32,9 @@
       "conflict": "SHA conflict: the remote was updated. Refresh and retry.",
       "invalidBody": "Request body is missing required fields or malformed",
       "unauthorized": "Unauthorized: please sign in via Cloudflare Access and retry",
-      "serverError": "Server error: {message}",
+      "rateLimited": "Too many requests. Please slow down and retry.",
+      "timeoutError": "Upstream service timed out. Please try again.",
+      "serverError": "Server error. Please try again later.",
       "nonJsonResponse": "Server returned a non-JSON response (HTTP {status})"
     }
   },

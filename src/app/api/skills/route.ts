@@ -3,7 +3,8 @@ import { getTranslations } from 'next-intl/server'
 import { ok, err } from '@/lib/api-response'
 import {
   listSummaries,
-  listTags,
+  deriveTags,
+  filterSummaries,
   upsertSkill,
   ShaConflictError,
   type SkillSummary,
@@ -12,21 +13,9 @@ import {
   skillUpsertBodySchema,
   type SkillUpsertBody,
 } from '@/features/skills/schemas'
-import { routing } from '@/i18n/routing'
-import { requireAccessAuth } from '@/lib/access-auth'
-
-function resolveLocale(request: NextRequest): string {
-  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value
-  if (cookieLocale && (routing.locales as readonly string[]).includes(cookieLocale)) {
-    return cookieLocale
-  }
-  const accept = request.headers.get('accept-language') ?? ''
-  const preferred = accept.split(',')[0]?.trim().toLowerCase() ?? ''
-  const match = (routing.locales as readonly string[]).find(
-    (l) => preferred === l.toLowerCase() || preferred.startsWith(l.toLowerCase() + '-'),
-  )
-  return match ?? routing.defaultLocale
-}
+import { resolveLocaleFromRequest } from '@/lib/locale'
+import { requireAccessAuth, getAccessIdentity } from '@/lib/access-auth'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 interface ListResponse {
   list: SkillSummary[]
@@ -34,33 +23,36 @@ interface ListResponse {
   tags: string[]
 }
 
+function clientKey(request: NextRequest): string {
+  const identity = getAccessIdentity(request)
+  if (identity?.email) return `email:${identity.email}`
+  const fwd = request.headers.get('x-forwarded-for') ?? ''
+  const ip = fwd.split(',')[0]?.trim() ?? ''
+  return ip ? `ip:${ip}` : 'ip:unknown'
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const q = (searchParams.get('q') ?? '').toLowerCase().trim()
-  const tag = (searchParams.get('tag') ?? '').trim()
+  const q = searchParams.get('q') ?? ''
+  const tag = searchParams.get('tag') ?? ''
 
-  let list = await listSummaries()
-  if (q) {
-    list = list.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.displayName.toLowerCase().includes(q) ||
-        s.description.toLowerCase().includes(q),
-    )
-  }
-  if (tag) {
-    list = list.filter((s) => s.tags.includes(tag))
-  }
+  const all = await listSummaries()
+  const list = filterSummaries(all, { q, tag })
+  const tags = deriveTags(all)
 
-  return ok<ListResponse>({ list, total: list.length, tags: await listTags() })
+  return ok<ListResponse>({ list, total: list.length, tags })
 }
 
 export async function POST(request: NextRequest) {
   const authFailure = await requireAccessAuth(request)
   if (authFailure) return authFailure
 
-  const locale = resolveLocale(request)
+  const locale = resolveLocaleFromRequest(request)
   const t = await getTranslations({ locale, namespace: 'Errors.skillApi' })
+
+  if (!checkRateLimit(clientKey(request))) {
+    return err(429, t('rateLimited'))
+  }
 
   let body: unknown
   try {
@@ -96,8 +88,17 @@ export async function POST(request: NextRequest) {
     if (error instanceof ShaConflictError) {
       return err(409, t('conflict'))
     }
+    if (isAbortError(error)) {
+      console.error('[POST /api/skills] upstream timeout:', error)
+      return err(504, t('timeoutError'))
+    }
     console.error('[POST /api/skills] unexpected error:', error)
-    const message = error instanceof Error ? error.message : 'unknown error'
-    return err(500, t('serverError', { message }))
+    return err(500, t('serverError'))
   }
+}
+
+function isAbortError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const name = (err as { name?: unknown }).name
+  return name === 'AbortError' || name === 'TimeoutError'
 }

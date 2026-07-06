@@ -43,14 +43,37 @@ export function SkillListView({
           {initialSkills.length === 0 ? (
             <ListEmptyState />
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {initialSkills.map((skill) => (
-                <SkillCard key={skill.name} skill={skill} />
-              ))}
-            </div>
+            <SkillGrid skills={initialSkills} />
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Grid renderer.
+ *
+ * For lists ≤ 100 items we render the plain CSS grid. Above that threshold we
+ * layer on `content-visibility: auto` which lets the browser skip layout+paint
+ * for off-viewport cards — cheap virtualization without a JS windowing lib.
+ */
+function SkillGrid({ skills }: { skills: SkillSummary[] }) {
+  const isLarge = skills.length > 100
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {skills.map((skill) => (
+        <div
+          key={skill.name}
+          style={
+            isLarge
+              ? { contentVisibility: 'auto', containIntrinsicSize: '180px' }
+              : undefined
+          }
+        >
+          <SkillCard skill={skill} />
+        </div>
+      ))}
     </div>
   )
 }

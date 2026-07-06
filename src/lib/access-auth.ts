@@ -1,23 +1,28 @@
 /**
- * Cloudflare Access defense-in-depth
+ * Cloudflare Access defense-in-depth guard.
  *
- * V1 部署在 Cloudflare Access 后面。CFA 已通过时会注入以下 header：
- *   - `Cf-Access-Jwt-Assertion`：JWT，可用 CFA 团队证书验签
- *   - `Cf-Access-Authenticated-User-Email`：解析后的用户邮箱
+ * The app sits behind Cloudflare Access. CFA injects:
+ *   - `Cf-Access-Jwt-Assertion` — signed JWT
+ *   - `Cf-Access-Authenticated-User-Email` — resolved user email
  *
- * 本工具只做 **presence check**（防止直连绕过 CFA），不做签名验证 —
- * 签名验证需要引入 `jose` 依赖 + 团队域 + 定期拉取 JWK。等后端接入真实
- * GitHub Contents API 时再一并加。
+ * When `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` are set we cryptographically
+ * verify the JWT against Cloudflare's JWKS — this is the required production
+ * posture, because the origin (Vercel deploy URL) is reachable independent of
+ * the CFA tunnel and header presence alone is trivial to spoof.
  *
- * 环境变量：
- *   - `ACCESS_AUTH_ENABLED=true`  开启本守卫（生产必须开）
- *   - `ACCESS_AUTH_ENABLED` 未设置 且 `NODE_ENV=production` → 默认开
- *   - 开发环境（`NODE_ENV=development`）默认关，方便本机 curl 调试
+ * If those envs are absent we fall back to a presence-only check and warn on
+ * first use — safe for local development where CFA is not in the loop.
+ *
+ * Env:
+ *   - `ACCESS_AUTH_ENABLED=true|false`  toggle (default: on in production)
+ *   - `CF_ACCESS_TEAM_DOMAIN`           e.g. "myorg.cloudflareaccess.com"
+ *   - `CF_ACCESS_AUD`                   Application Audience tag
  */
 import type { NextRequest } from 'next/server'
 import { getTranslations } from 'next-intl/server'
 import { err } from './api-response'
-import { routing } from '@/i18n/routing'
+import { resolveLocaleFromRequest } from './locale'
+import { cfAccessJwtConfigured, verifyCfAccessJwt } from './cf-access-jwt'
 
 const HEADER_JWT = 'cf-access-jwt-assertion'
 const HEADER_EMAIL = 'cf-access-authenticated-user-email'
@@ -29,22 +34,29 @@ function isEnabled(): boolean {
   return process.env.NODE_ENV === 'production'
 }
 
-function resolveLocale(request: NextRequest): string {
-  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value
-  if (cookieLocale && (routing.locales as readonly string[]).includes(cookieLocale)) {
-    return cookieLocale
-  }
-  const accept = request.headers.get('accept-language') ?? ''
-  const preferred = accept.split(',')[0]?.trim().toLowerCase() ?? ''
-  const match = (routing.locales as readonly string[]).find(
-    (l) => preferred === l.toLowerCase() || preferred.startsWith(l.toLowerCase() + '-'),
+let warnedAboutFallback = false
+function warnFallbackOnce() {
+  if (warnedAboutFallback) return
+  warnedAboutFallback = true
+  console.warn(
+    '[access-auth] CF Access JWT verification NOT configured (missing CF_ACCESS_TEAM_DOMAIN/CF_ACCESS_AUD). Falling back to presence-only check — do not use in production.',
   )
-  return match ?? routing.defaultLocale
+}
+
+async function unauthorized(request: NextRequest): Promise<Response> {
+  const locale = resolveLocaleFromRequest(request)
+  const t = await getTranslations({ locale, namespace: 'Errors.skillApi' })
+  return err(401, t('unauthorized'))
+}
+
+export interface AccessAuthResult {
+  identity: { email: string; sub: string } | null
 }
 
 /**
- * 若请求缺少 CF Access header，返回 401 响应；否则返回 null（放行）。
- * 主要用于写操作路由（POST/DELETE）—— 读接口可选。
+ * Returns null (with identity attached to a WeakMap for callers via
+ * `getAccessIdentity`) when authorized, or a Response when the request
+ * should be rejected. Callers should return the Response immediately.
  */
 export async function requireAccessAuth(
   request: NextRequest,
@@ -53,9 +65,24 @@ export async function requireAccessAuth(
 
   const jwt = request.headers.get(HEADER_JWT)
   const email = request.headers.get(HEADER_EMAIL)
-  if (jwt || email) return null
 
-  const locale = resolveLocale(request)
-  const t = await getTranslations({ locale, namespace: 'Errors.skillApi' })
-  return err(401, t('unauthorized'))
+  if (cfAccessJwtConfigured()) {
+    if (!jwt) return unauthorized(request)
+    const identity = await verifyCfAccessJwt(jwt)
+    if (!identity) return unauthorized(request)
+    identityCache.set(request, identity)
+    return null
+  }
+
+  warnFallbackOnce()
+  if (!jwt && !email) return unauthorized(request)
+  return null
+}
+
+const identityCache = new WeakMap<NextRequest, { email: string; sub: string }>()
+
+export function getAccessIdentity(
+  request: NextRequest,
+): { email: string; sub: string } | null {
+  return identityCache.get(request) ?? null
 }
